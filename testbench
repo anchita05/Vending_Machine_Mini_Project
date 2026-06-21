@@ -1,0 +1,75 @@
+`timescale 1ns / 1ps
+
+module vending_machine_sim;
+    reg clk;
+    reg rst;
+    reg coin5;
+    reg coin10;
+    wire dispense;
+    vending_machine dut (
+        .clk(clk),
+        .rst(rst),
+        .coin5(coin5),
+        .coin10(coin10),
+        .dispense(dispense)        
+    );
+
+    //Clock Generator
+    always begin
+        #5 clk = ~clk;
+    end
+
+    initial begin
+        clk = 0;
+        rst = 0;
+        coin5 = 0;
+        coin10 = 0;
+
+        //Reset Logic
+        rst = 1;
+        #10;          
+        rst = 0;
+        #5;
+        
+        //For a 10-Unit Coin
+        coin10 = 1;
+        #10;                      
+        if (dispense)
+            $display("10 UNIT CASE PASSED");
+        else
+            $display("10 UNIT CASE FAILED");
+            
+        coin10 = 0;      
+        #10;             
+        // For 5 unit coins
+        #10;
+        coin5 = 1;       
+        #10;
+        coin5 = 0;       
+        #10;
+        coin5 = 1;       
+        #10;
+        if (dispense)
+            $display("5 UNIT CASE PASSED");
+        else
+            $display("5 UNIT CASE FAILED");
+        coin5 = 0;       
+        #10;
+
+        // For Idle/Incomplete State
+        #10;
+        coin5 = 1;       // Insert only 5 units
+        #10;
+        coin5 = 0;      
+        
+        repeat(2) #10;
+        #10;
+        if (!dispense)
+            $display("PASS: item not released for partial funds.");
+        else
+            $display("FAIL: item released without total funds!");
+
+        #20;
+        $finish;
+    end
+endmodule
